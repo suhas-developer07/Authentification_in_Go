@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	userdb "github.com/suhas-developer07/Authentification_in_Go/db/user_db"
+    "github.com/suhas-developer07/Authentification_in_Go/db/user_db"
 	"github.com/suhas-developer07/Authentification_in_Go/models"
 )
 
@@ -19,17 +19,24 @@ func Signin(ctx *gin.Context) {
 	  })
    }
 
-   err := userdb.UserRepository.CheckUserExist(Payload)
+   user,err := userdb.UserRepository.CheckUserExist(Payload)
 
    if err!=nil {
 	ctx.JSON(http.StatusBadRequest, gin.H{
 		"error":true,
-		"message":"Invalid credentials",
-		"errormsg" : err.Error(),
+		"message" : err.Error(),
 	})
 	return
    }
-   
+
+   if Payload.Password != user.Password {
+	ctx.JSON(http.StatusBadRequest,gin.H{
+		"error":true,
+		"message":"Invalid credentials",
+	})
+	return
+   } 
+
    jwt := "123456"
 
    ctx.JSON(http.StatusOK,gin.H{
@@ -37,9 +44,6 @@ func Signin(ctx *gin.Context) {
 	"message":"Login succesfull",
 	"jwt":jwt,
    })
-
-
-
 }
 
 func Signup(ctx *gin.Context){
@@ -50,6 +54,7 @@ func Signup(ctx *gin.Context){
 			"error" :true,
 		    "message":"unable to read the body",
 		})
+		return
 	}
 
 	err := userdb.UserRepository.CreateUserQuery(Payload)

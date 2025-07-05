@@ -2,6 +2,8 @@ package userdb
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/suhas-developer07/Authentification_in_Go/db"
 	"github.com/suhas-developer07/Authentification_in_Go/models"
@@ -21,8 +23,25 @@ func (u User) CreateUserQuery(Payload models.SignupPayload) error {
 	}
 	return nil
 }
+type UserData struct {
+	ID       string 
+	Email    string
+	Password string
+}
 
-func (u User) CheckUserExist(Payload models.SigninPayload) error {
+func (u User) CheckUserExist(Payload models.SigninPayload) (*UserData,error) {
 
-	return nil
+	query := `SELECT id, email, password FROM users WHERE email=$1`
+
+	var user UserData
+
+	err := db.DB.QueryRow(context.Background(),query,Payload.Email).Scan(&user.ID,user.Email,user.Password);
+
+	if err != nil {
+		if err == sql.ErrNoRows{
+			return nil,fmt.Errorf("user not found")
+		}
+      return  nil,err
+	}
+	return &user,nil
 }
